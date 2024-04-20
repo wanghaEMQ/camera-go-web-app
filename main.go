@@ -21,9 +21,18 @@ func handlertest(w http.ResponseWriter, r *http.Request) {
   fmt.Fprintf(w, "<html></br><img src='/images/" + fileName + "' ></html>")
 }
 
+var rand int = 0
 func handler_camerapreview(rw http.ResponseWriter, r *http.Request) {
+  var str string
+  if rand % 2 == 1 {
+    str = "/images/preview.jpg"
+  } else {
+    str = "/images/preview2.jpg"
+  }
+  rand = rand + 1
+
   path := CameraPreview {
-      Path: "/images/preview.jpg",
+      Path: str,
   }
   byteArray, err := json.Marshal(path)
   if err != nil {
@@ -68,5 +77,5 @@ func main() {
   http.HandleFunc("/camerapreview", handler_camerapreview)
   http.HandleFunc("/startrecord", handler_startrecord)
   http.HandleFunc("/stoprecord", handler_stoprecord)
-  http.ListenAndServe(":8080", nil)
+  http.ListenAndServe(":11111", nil)
 }
