@@ -32,6 +32,28 @@ func handler_camerapreview(rw http.ResponseWriter, r *http.Request) {
   rw.Write(byteArray)
 }
 
+func handler_startrecord(rw http.ResponseWriter, r *http.Request) {
+  res := Record {
+    Txt: "Successfully start",
+  }
+  byteArray, err := json.Marshal(res)
+  if err != nil {
+    fmt.Println(err)
+  }
+  rw.Write(byteArray)
+}
+
+func handler_stoprecord(rw http.ResponseWriter, r *http.Request) {
+  res := Record {
+    Txt: "Successfully stop",
+  }
+  byteArray, err := json.Marshal(res)
+  if err != nil {
+    fmt.Println(err)
+  }
+  rw.Write(byteArray)
+}
+
 func main() {
   rootdir, err := os.Getwd()
   if err != nil {
@@ -44,5 +66,7 @@ func main() {
         http.FileServer(http.Dir(path.Join(rootdir, "images/")))))
   http.HandleFunc("/test", handlertest)
   http.HandleFunc("/camerapreview", handler_camerapreview)
+  http.HandleFunc("/startrecord", handler_startrecord)
+  http.HandleFunc("/stoprecord", handler_stoprecord)
   http.ListenAndServe(":8080", nil)
 }
