@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <button id="gt">Camera Preview</button>
+    <div id="res"></div>
+    <script>
+        document.getElementById("gt").onclick = async (e) => {
+            var req = await fetch("\camerapreview").then(r => r.json())
+			var str1 = '<img src= "'
+			var str = str1.concat(req.Path, '">')
+			document.getElementById("res").innerHTML = str
+			//document.getElementById("res").innerHTML = '<img src= "/images/DSC00680.jpeg">'
+            //document.getElementById("res").innerHTML = req.CurrentTime
+        }
+    </script>
+</body>
+</html>
