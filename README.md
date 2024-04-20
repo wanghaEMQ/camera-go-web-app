@@ -8,4 +8,4 @@ No docs now.
 go run main.go
 ```
 
-when go to your broswer and visit <http://127.0.0.1:11111>
+then go to your broswer and visit <http://127.0.0.1:11111>
