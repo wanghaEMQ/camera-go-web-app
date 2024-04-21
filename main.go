@@ -6,7 +6,13 @@ import (
   "os"
   "path"
   "encoding/json"
+
+  "go.nanomsg.org/mangos/v3"
+  "go.nanomsg.org/mangos/v3/protocol/push"
+  _ "go.nanomsg.org/mangos/v3/transport/all"
 )
+
+var ipcsock mangos.Socket
 
 type CameraPreview struct {
     Path string
@@ -23,6 +29,7 @@ func handlertest(w http.ResponseWriter, r *http.Request) {
 
 var rand int = 0
 func handler_camerapreview(rw http.ResponseWriter, r *http.Request) {
+	/*
   var str string
   if rand % 2 == 1 {
     str = "/images/preview.jpg"
@@ -30,6 +37,11 @@ func handler_camerapreview(rw http.ResponseWriter, r *http.Request) {
     str = "/images/preview2.jpg"
   }
   rand = rand + 1
+  */
+
+  var str string
+  mangos_send_preview()
+  str = "/images/preview.jpg"
 
   path := CameraPreview {
       Path: str,
@@ -42,6 +54,8 @@ func handler_camerapreview(rw http.ResponseWriter, r *http.Request) {
 }
 
 func handler_startrecord(rw http.ResponseWriter, r *http.Request) {
+  mangos_send_start()
+
   res := Record {
     Txt: "Successfully start",
   }
@@ -53,6 +67,8 @@ func handler_startrecord(rw http.ResponseWriter, r *http.Request) {
 }
 
 func handler_stoprecord(rw http.ResponseWriter, r *http.Request) {
+  mangos_send_stop()
+
   res := Record {
     Txt: "Successfully stop",
   }
@@ -63,11 +79,47 @@ func handler_stoprecord(rw http.ResponseWriter, r *http.Request) {
   rw.Write(byteArray)
 }
 
+var ipcurl string = "ipc:///tmp/camerarecord.ipc"
+
+func mangos_start() {
+	var err error
+
+	if ipcsock, err = push.NewSocket(); err != nil {
+		fmt.Println("can't get new push socket: %s", err.Error())
+	}
+	if err = ipcsock.Dial(ipcurl); err != nil {
+		fmt.Println("can't dial on push socket: %s", err.Error())
+	}
+}
+
+func mangos_send_start() {
+	mangos_send("start-record")
+}
+
+func mangos_send_stop() {
+	mangos_send("stop-record")
+}
+
+func mangos_send_preview() {
+	mangos_send("preview")
+}
+
+func mangos_send(data string) {
+	// data := "IPC://EXTERNAL2NANO:{\"key\":1000,\"offset\":100}"
+	// for {
+	fmt.Printf("CLIENT: PUBLISHING DATA %s\n", data)
+	if err := ipcsock.Send([]byte(data)); err != nil {
+		fmt.Println("Failed publishing: %s", err.Error())
+	}
+	//time.Sleep(time.Millisecond * 200)
+}
+
 func main() {
   rootdir, err := os.Getwd()
   if err != nil {
     rootdir = "No dice"
   }
+  mangos_start()
 
   http.Handle("/", http.FileServer(http.Dir("web")))
   // Handler for anything pointing to /images/
