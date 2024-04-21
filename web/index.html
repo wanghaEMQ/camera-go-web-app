@@ -7,13 +7,13 @@
     <title>CameraApp</title>
 </head>
 <body>
-    <button id="start">Start Record</button>
-    <button id="stop">Stop Record</button>
+    <button id="start" style="height:100px;width:200px;border-radius:30px;background-color:#f44336">Start Record</button>
+    <button id="stop" style="height:100px;width:200px;border-radius:30px;background-color:#e7e7e7">Stop Record</button>
 	<div id="res"></div>
 	</br>
-    <button id="shot">Camera Preview</button>
+    <button id="shot" style="height:100px;width:200px;border-radius:30px;background-color:#04AA6D">Camera Preview</button>
 	<div id="todo"></div>
-	<img id="preview" src="/images/preview2.jpg">
+	<img id="preview" src="/images/preview2.jpg" style="width:400px;object-fit:contain">
     <script>
         document.getElementById("shot").onclick = async (e) => {
             var req = await fetch("\camerapreview").then(r => r.json())
