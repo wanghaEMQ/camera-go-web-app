@@ -14,6 +14,10 @@ import (
 )
 
 var ipcsock mangos.Socket
+var record_running int = 0
+
+var preview_idx int = 0
+var preview_cap int = 20
 
 type CameraPreview struct {
     Path string
@@ -28,24 +32,28 @@ func handlertest(w http.ResponseWriter, r *http.Request) {
   fmt.Fprintf(w, "<html></br><img src='/images/" + fileName + "' ></html>")
 }
 
-var rand int = 0
 func handler_camerapreview(rw http.ResponseWriter, r *http.Request) {
-	/*
-  var str string
-  if rand % 2 == 1 {
-    str = "/images/preview.jpg"
-  } else {
-    str = "/images/preview2.jpg"
-  }
-  rand = rand + 1
-  */
-
-  mangos_send_preview()
   // Wait 100ms for writing
   time.Sleep(100 * time.Millisecond)
 
+  if record_running != 1 {
+    path := CameraPreview {
+      Path: "/images/preview.jpg",
+    }
+    byteArray, err := json.Marshal(path)
+    if err != nil {
+      fmt.Println(err)
+    }
+    rw.Write(byteArray)
+    return
+  }
+
+  mangos_send_preview()
+
   var str string
-  str = "/images/preview.jpg"
+  str = fmt.Sprintf("%s%s%d.%s", "/images/", "preview", preview_idx, "jpg")
+  fmt.Println(str)
+  preview_idx = (preview_idx + 1) % preview_cap
 
   path := CameraPreview {
       Path: str,
@@ -68,6 +76,8 @@ func handler_startrecord(rw http.ResponseWriter, r *http.Request) {
     fmt.Println(err)
   }
   rw.Write(byteArray)
+
+  record_running = 1
 }
 
 func handler_stoprecord(rw http.ResponseWriter, r *http.Request) {
@@ -81,6 +91,8 @@ func handler_stoprecord(rw http.ResponseWriter, r *http.Request) {
     fmt.Println(err)
   }
   rw.Write(byteArray)
+
+  record_running = 0
 }
 
 var ipcurl string = "ipc:///tmp/camerarecord.ipc"
