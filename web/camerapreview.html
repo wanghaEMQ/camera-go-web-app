@@ -9,13 +9,15 @@
 <body>
     <button id="gt">Camera Preview</button>
     <div id="res"></div>
+	<img id="preview" src="/images/preview2.jpg">
     <script>
         document.getElementById("gt").onclick = async (e) => {
             var req = await fetch("\camerapreview").then(r => r.json())
-			var str1 = '<img src= "'
-			var str = str1.concat(req.Path, '">')
-			document.getElementById("res").innerHTML = str
-			//document.getElementById("res").innerHTML = '<img src= "/images/DSC00680.jpeg">'
+	    	//var str1 = '<img src= "'
+	    	//var str = str1.concat(req.Path, '">')
+	    	//document.getElementById("res").innerHTML = str
+	    	document.getElementById("preview").src = req.Path
+	    	//document.getElementById("res").innerHTML = '<img src= "/images/DSC00680.jpeg">'
             //document.getElementById("res").innerHTML = req.CurrentTime
         }
     </script>
