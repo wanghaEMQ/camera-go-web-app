@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CameraApp</title>
+</head>
+<body>
+    <button id="start">Start Record</button>
+    <button id="stop">Stop Record</button>
+	<div id="res"></div>
+	</br>
+    <button id="shot">Camera Preview</button>
+	<div id="todo"></div>
+	<img id="preview" src="/images/preview2.jpg">
+    <script>
+        document.getElementById("shot").onclick = async (e) => {
+            var req = await fetch("\camerapreview").then(r => r.json())
+	    	document.getElementById("preview").src = req.Path
+	    	//document.getElementById("res").innerHTML = '<img src= "/images/DSC00680.jpeg">'
+            //document.getElementById("res").innerHTML = req.CurrentTime
+        }
+        document.getElementById("start").onclick = async (e) => {
+            var req = await fetch("\startrecord").then(r => r.json())
+			var str = req.Txt
+			document.getElementById("res").innerHTML = str
+        }
+        document.getElementById("stop").onclick = async (e) => {
+            var req = await fetch("\stoprecord").then(r => r.json())
+			var str = req.Txt
+			document.getElementById("res").innerHTML = str
+        }
+    </script>
+</body>
+</html>
