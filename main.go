@@ -6,6 +6,7 @@ import (
   "os"
   "path"
   "encoding/json"
+  "time"
 
   "go.nanomsg.org/mangos/v3"
   "go.nanomsg.org/mangos/v3/protocol/push"
@@ -39,8 +40,11 @@ func handler_camerapreview(rw http.ResponseWriter, r *http.Request) {
   rand = rand + 1
   */
 
-  var str string
   mangos_send_preview()
+  // Wait 100ms for writing
+  time.Sleep(100 * time.Millisecond)
+
+  var str string
   str = "/images/preview.jpg"
 
   path := CameraPreview {
