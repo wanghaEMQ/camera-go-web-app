@@ -12,13 +12,35 @@
 	<div id="res"></div>
 	</br>
     <button id="shot" style="height:100px;width:200px;border-radius:30px;font-size:30px;background-color:#04AA6D">Camera Preview</button>
-	<div id="todo"></div>
-	<img id="preview" src="/images/preview2.jpg" style="width:400px;object-fit:contain">
+	<div id="show"></div>
+	<img id="preview" src="/images/preview.jpg" style="width:400px;object-fit:contain">
     <script>
         document.getElementById("shot").onclick = async (e) => {
-            var req = await fetch("\camerapreview").then(r => r.json())
-	    	document.getElementById("preview").src = req.Path
-	    	//document.getElementById("res").innerHTML = '<img src= "/images/DSC00680.jpeg">'
+			let data;
+			fetch("/camerapreview").then(r => {
+				if (!r.ok) {
+					throw new Error("http response was not ok");
+				}
+				return r.blob();
+				then(blobResponse => {data = blobResponse;})
+			}).then(blob => {
+				const imgUrl = URL.createObjectURL(blob);
+				const imgEle = document.createElement('img');
+				imgEle.id = 'imgDisplay';
+				imgEle.src = imgUrl;
+				imgEle.alt = 'fetched image is null';
+				imgEle.style = "width:400px;object-fit:contain"
+				const container = document.getElementById('show');
+				container.innerHTML = '';
+				container.appendChild(imgEle);
+			}).catch(error => {
+				console.error('Errpr fetching image:', error);
+				const container = document.getElementById('show');
+				container.innerHTML = '<p>Failed to load image<\p>';
+			});
+            //var req = await fetch("\camerapreview").then(r => r.json())
+	    	//document.getElementById("preview").src = req.Path
+            //document.getElementById("res").innerHTML = '<img src= "/images/DSC00680.jpeg">'
             //document.getElementById("res").innerHTML = req.CurrentTime
         }
         document.getElementById("start").onclick = async (e) => {
