@@ -2,18 +2,16 @@ package main
 
 import (
   "fmt"
+  "log"
   "net/http"
+  "io"
   "os"
   "path"
   "encoding/json"
   "time"
-
-  "go.nanomsg.org/mangos/v3"
-  "go.nanomsg.org/mangos/v3/protocol/push"
-  _ "go.nanomsg.org/mangos/v3/transport/all"
+  "bytes"
 )
 
-var ipcsock mangos.Socket
 var record_running int = 0
 
 var preview_idx int = 0
@@ -48,8 +46,9 @@ func handler_camerapreview(rw http.ResponseWriter, r *http.Request) {
     return
   }
 
-  mangos_send_preview()
+  byteArray := ask_camera_preview()
 
+  /*
   var str string
   str = fmt.Sprintf("%s%s%d.%s", "/images/", "preview", preview_idx, "jpg")
   fmt.Println(str)
@@ -62,11 +61,12 @@ func handler_camerapreview(rw http.ResponseWriter, r *http.Request) {
   if err != nil {
       fmt.Println(err)
   }
+  */
   rw.Write(byteArray)
 }
 
 func handler_startrecord(rw http.ResponseWriter, r *http.Request) {
-  mangos_send_start()
+  ask_camera_on()
 
   res := Record {
     Txt: "Successfully start",
@@ -81,7 +81,7 @@ func handler_startrecord(rw http.ResponseWriter, r *http.Request) {
 }
 
 func handler_stoprecord(rw http.ResponseWriter, r *http.Request) {
-  mangos_send_stop()
+  ask_camera_off()
 
   res := Record {
     Txt: "Successfully stop",
@@ -95,39 +95,49 @@ func handler_stoprecord(rw http.ResponseWriter, r *http.Request) {
   record_running = 0
 }
 
-var ipcurl string = "ipc:///tmp/camerarecord.ipc"
+func ask_camera_on() {
+	res := http_send("start-record")
+	log.Println("start-record => ", string(res))
+}
 
-func mangos_start() {
-	var err error
+func ask_camera_off() {
+	res := http_send("stop-record")
+	log.Println("stop-record => ", string(res))
+}
 
-	if ipcsock, err = push.NewSocket(); err != nil {
-		fmt.Println("can't get new push socket: %s", err.Error())
+func ask_camera_preview() []byte {
+	res := http_send("preview")
+	log.Println("preview => ", string(res)[:10])
+	return res
+}
+
+func http_send(data string) []byte {
+	client := &http.Client{
+		Timeout: time.Second * 10,
 	}
-	if err = ipcsock.Dial(ipcurl); err != nil {
-		fmt.Println("can't dial on push socket: %s", err.Error())
+
+	// Create a new POST request
+	req, err := http.NewRequest("POST", "http://127.0.0.1:9999", bytes.NewReader([]byte(data)))
+	if err != nil {
+		log.Fatalf("Error creating request: %s", err)
 	}
-}
 
-func mangos_send_start() {
-	mangos_send("start-record")
-}
+	// Set headers
+	req.Header.Add("Content-Type", "application/json")
 
-func mangos_send_stop() {
-	mangos_send("stop-record")
-}
-
-func mangos_send_preview() {
-	mangos_send("preview")
-}
-
-func mangos_send(data string) {
-	// data := "IPC://EXTERNAL2NANO:{\"key\":1000,\"offset\":100}"
-	// for {
-	fmt.Printf("CLIENT: PUBLISHING DATA %s\n", data)
-	if err := ipcsock.Send([]byte(data)); err != nil {
-		fmt.Println("Failed publishing: %s", err.Error())
+	// Execute the request
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatalf("Error making request: %s", err)
 	}
-	//time.Sleep(time.Millisecond * 200)
+	defer resp.Body.Close()
+
+	// Read the response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatalf("Error reading response body: %s", err)
+	}
+	return body
 }
 
 func main() {
@@ -135,7 +145,6 @@ func main() {
   if err != nil {
     rootdir = "No dice"
   }
-  mangos_start()
 
   http.Handle("/", http.FileServer(http.Dir("web")))
   // Handler for anything pointing to /images/
