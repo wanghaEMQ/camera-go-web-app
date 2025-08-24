@@ -95,6 +95,19 @@ func handler_stoprecord(rw http.ResponseWriter, r *http.Request) {
   record_running = 0
 }
 
+func handler_status(rw http.ResponseWriter, r *http.Request) {
+  ans := ask_camera_status()
+
+  res := Record {
+    Txt: string(ans),
+  }
+  byteArray, err := json.Marshal(res)
+  if err != nil {
+    fmt.Println(err)
+  }
+  rw.Write(byteArray)
+}
+
 func ask_camera_on() {
 	res := http_send("start-record")
 	log.Println("start-record => ", string(res))
@@ -154,5 +167,6 @@ func main() {
   http.HandleFunc("/camerapreview", handler_camerapreview)
   http.HandleFunc("/startrecord", handler_startrecord)
   http.HandleFunc("/stoprecord", handler_stoprecord)
+  http.HandleFunc("/status", handler_status)
   http.ListenAndServe(":11111", nil)
 }
