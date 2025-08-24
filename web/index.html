@@ -5,14 +5,30 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CameraApp</title>
+	<style>
+	.circle {
+      width: 100px;
+      height: 100px;
+      background-color: red;
+      border: 2px solid white;
+      border-radius: 50%;
+    }
+	</style>
 </head>
 <body>
     <button id="start" style="height:100px;width:200px;border-radius:30px;font-size:30px;background-color:#f44336">Start Record</button>
     <button id="stop" style="height:100px;width:200px;border-radius:30px;font-size:30px;background-color:#e7e7e7">Stop Record</button>
 	<div id="res"></div>
 	</br>
-    <button id="shot" style="height:100px;width:200px;border-radius:30px;font-size:30px;background-color:#04AA6D">Camera Preview</button>
-	<div id="show"></div>
+	<div id="previewAndStatus" style="width:400px;">
+    	<button id="shot" style="height:100px;width:200px;border-radius:30px;font-size:30px;background-color:#04AA6D;float:left;">Camera Preview</button>
+		<div id="statusLight" class="circle" style="float:right;"></div>
+	</div>
+	</br>
+	</br>
+	<div id="statusDisplay">Camera Status: off</div>
+	</br>
+	<div id="showPhoto"></div>
 	<img id="preview" src="/images/preview.jpg" style="width:400px;object-fit:contain">
     <script>
         document.getElementById("shot").onclick = async (e) => {
@@ -30,12 +46,12 @@
 				imgEle.src = imgUrl;
 				imgEle.alt = 'fetched image is null';
 				imgEle.style = "width:400px;object-fit:contain"
-				const container = document.getElementById('show');
+				const container = document.getElementById('showPhoto');
 				container.innerHTML = '';
 				container.appendChild(imgEle);
 			}).catch(error => {
 				console.error('Errpr fetching image:', error);
-				const container = document.getElementById('show');
+				const container = document.getElementById('showPhoto');
 				container.innerHTML = '<p>Failed to load image<\p>';
 			});
             //var req = await fetch("\camerapreview").then(r => r.json())
@@ -44,15 +60,32 @@
             //document.getElementById("res").innerHTML = req.CurrentTime
         }
         document.getElementById("start").onclick = async (e) => {
-            var req = await fetch("\startrecord").then(r => r.json())
+            var req = await fetch("/startrecord").then(r => r.json())
 			var str = req.Txt
 			document.getElementById("res").innerHTML = str
         }
         document.getElementById("stop").onclick = async (e) => {
-            var req = await fetch("\stoprecord").then(r => r.json())
+            var req = await fetch("/stoprecord").then(r => r.json())
 			var str = req.Txt
 			document.getElementById("res").innerHTML = str
         }
+        function fetchStatus() {
+			fetch("/status").then(response => {
+				response.json().then(data => {
+					document.getElementById("statusDisplay").innerHTML = `Camera Status: ${data.Txt}`;
+					if (data.Txt == "on") {
+						document.getElementById("statusLight").style.backgroundColor = 'green';
+					} else {
+						document.getElementById("statusLight").style.backgroundColor = 'red';
+					}
+				})
+			}).catch(error => {
+				document.getElementById("statusDisplay").innerHTML = `Error: ${error.message}`;
+				console.error("Fetch error:", error);
+			});
+		}
+		setInterval(fetchStatus, 5000);
+		fetchStatus();
     </script>
 </body>
 </html>
